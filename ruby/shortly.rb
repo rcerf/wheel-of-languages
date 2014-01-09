@@ -4,8 +4,11 @@ require 'active_record'
 require 'digest/sha1'
 require 'bcrypt'
 require 'pry'
+require 'pg'
 require 'uri'
 require 'open-uri'
+require 'tux'
+require './environments'
 # require 'nokogiri'
 
 ###########################################################
@@ -16,12 +19,25 @@ enable :sessions
 
 set :public_folder, File.dirname(__FILE__) + '/public'
 
-configure :development, :production do
-    ActiveRecord::Base.establish_connection(
-       :adapter => 'sqlite3',
-       :database =>  'db/dev.sqlite3.db'
-     )
-end
+# configure :development do
+#     ActiveRecord::Base.establish_connection(
+#        :adapter => 'postgresql',
+#        :database =>  'db/dev.postgresql.db'
+#      )
+# end
+
+# configure :production do
+#   db = URI.parse(ENV['DATABASE_URL'] || 'postgres:///localhost/db')
+
+#   ActiveRecord::Base.establish_connection(
+#     :adapter  => db.scheme == 'postgres' ? 'postgresql' : db.scheme,
+#     :host     => db.host,
+#     :username => db.user,
+#     :password => db.password,
+#     :database => db.path[1..-1],
+#     :encoding => 'utf8'
+#   )
+# end
 
 # Handle potential connection pool timeout issues
 after do
@@ -59,9 +75,6 @@ class User < ActiveRecord::Base
 
     def authenticate(password)
         self.password === BCrypt::Engine.hash_secret(password, self.salt)
-        puts self.password
-        puts BCrypt::Engine.hash_secret(password, self.salt)
-        puts password
     end
 
     before_create do |record|
@@ -72,7 +85,7 @@ class User < ActiveRecord::Base
 end
 
 ###########################################################
-# Auth
+# Auth Filter
 ###########################################################
 
 ['/', "/create", "/links"].each do |path|
@@ -80,7 +93,6 @@ end
         halt redirect('/login') unless logged_in?
     end
 end
-
 
 ###########################################################
 # Routes
@@ -104,10 +116,12 @@ post '/login' do
         redirect '/signup'
     else
         session[:identifier] = user.identifier if user.authenticate(params[:password])
-        # puts "Authenticated?" + user.password.to_s()
-        # puts "Logged in?" + logged_in?.to_s()
         redirect '/'
     end
+end
+
+get '/favicon.ico' do
+    []
 end
 
 get '/signup' do

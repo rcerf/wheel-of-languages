@@ -10,7 +10,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20131025000300) do
+ActiveRecord::Schema.define(:version => 20131024203324) do
 
   create_table "clicks", :force => true do |t|
     t.integer  "link_id"
@@ -21,14 +21,10 @@ ActiveRecord::Schema.define(:version => 20131025000300) do
   create_table "links", :force => true do |t|
     t.string   "url"
     t.string   "code"
-    t.datetime "created_at",                       :null => false
-    t.datetime "updated_at",                       :null => false
-    t.integer  "visits",            :default => 0
+    t.datetime "created_at",                :null => false
+    t.datetime "updated_at",                :null => false
+    t.integer  "visits",     :default => 0
     t.string   "title"
-    t.string   "icon_file_name"
-    t.string   "icon_content_type"
-    t.integer  "icon_file_size"
-    t.datetime "icon_updated_at"
   end
 
   create_table "users", :force => true do |t|

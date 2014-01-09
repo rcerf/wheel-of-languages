@@ -1,72 +1,70 @@
-window.Shortly = Backbone.View.extend({
+var shortly = angular.module('shortlyApp', [])
+.config(function($routeProvider) {
+  $routeProvider
+  .when('/', {
+    controller: 'linksCtrl',
+    templateUrl: 'templates/link.html'
+  })
+  // .when('/create', {
+  //   controller: 'createCtrl',
+  //   templateUrl: 'templates/create.html'
 
-  template: _.template(' \
-      <h1>Shortly</h1> \
-      <div class="navigation"> \
-      <ul> \
-        <li><a href="#" class="index">All Links</a></li> \
-        <li><a href="#" class="create">Shorten</a></li> \
-      </ul> \
-      </div> \
-      <input type="text" placeholder="Filter links" class="search"></input> \
-      <select class="select"> \
-        <option value="visits">View Count</option> \
-        <option value="title">Title</option> \
-        <option value="updated_at">Date</option> \
-      </select> \
-      <div id="container"></div>'
-  ),
+  // })
+  .otherwise({
 
-  events: {
-    "click li a.index":  "renderIndexView",
-    "click li a.create": "renderCreateView",
-    "keyup input.search": "renderIndexView",
-    "change select": "renderIndexView"
-  },
+  });
+})
+.controller('linksCtrl',
+  function($scope, $http) {
+    $http.get('/links')
+    .success(function(data, status, header, config) {
+      $scope.links = data;
+    })
+    .error(function(data, status, header, config) {
+    });
+    $scope.sendMsg = function() {
+      $scope.spinnerShow = true;
+      var urldata = JSON.stringify({url: $scope.createdLink});
+      for (var i = 0; i < $scope.links.length; i++) {
+        if ($scope.createdLink === $scope.links[i].url) {
+          $scope.error = "Link is already in the database";
+        }
+      }
 
-  initialize: function(){
-    console.log( "Shortly is running" );
-    $('body').append(this.render().el);
+      $http.post('/links', urldata)
+        .success(function(data, status) {
+          $scope.spinnerShow = false;
+          $scope.links = [data];
+        }).error(function(data, status) {
+          $scope.spinnerShow = false;
+          $scope.error = "Please enter a valid URL";
+        });
+    };
 
-    this.router = new Shortly.Router({el: this.$el.find("#container")});
-    Backbone.history.start({ pushState: true });
-    this.router.on('navigate', this.updateNav, this);
-
-  },
-
-  render: function(){
-    this.$el.html( this.template() );
-    return this;
-  },
-
-  renderIndexView: function(e){
-    // $("select").fadeIn();
-    // $(".search").fadeIn();
-    e && e.preventDefault();
-    // var links = new Shortly.Links();
-    // links.comparator = $('.select').val();
-    // var linksView = new Shortly.LinksView( {collection: links, criteria: $('.search').val()} );
-    // this.$el.find('#container').html( linksView.render().el );
-
-    this.router.navigate('/', {trigger: true});
-    this.updateNav('index');
-  },
-
-  renderCreateView: function(e){
-    e && e.preventDefault();
-    // $("select").hide();
-    // $(".search").hide();
-    // var linkCreateView = new Shortly.LinkCreateView();
-    // this.$el.find('#container').html( linkCreateView.render().el );
-    this.router.navigate('/create', {trigger: true});
-    this.updateNav('create');
-  },
-
-  updateNav: function(className){
-    this.$el.find('.navigation li a')
-            .removeClass('selected')
-            .filter('.'+className)
-            .addClass('selected');
-  }
-
+})
+// .controller('createCtrl',
+//   function($scope, $http) {
+//     $scope.sendMsg = function() {
+//       $scope.spinnerShow = true;
+//       var urldata = JSON.stringify({url: $scope.link});
+//       $http.post('/links', urldata)
+//         .success(function(data, status) {
+//           $scope.spinnerShow = false;
+//           console.log(data);
+//           $scope.message = data;
+//         }).error(function(data, status) {
+//           $scope.spinnerShow = false;
+//           $scope.error = "Please enter a valid URL";
+//         });
+//     };
+// })
+.directive('linkView', function() {
+  return {
+    // restrict: 'EA',
+    require: '^ngModel',
+    scope: {
+      ngModel: '=',
+    },
+    templateUrl: 'templates/linkView.html'
+  };
 });
