@@ -21,8 +21,9 @@ func (p *Page) save() error {
 }
 
 func loadPage(title string) (*Page, error) {
+	path := "/public/templates/"
 	filename := title + ".html"
-	fmt.Println(filename)
+	fmt.Println(filename))
 
 	body, err := ioutil.ReadFile(filename)
 	if err != nil {
